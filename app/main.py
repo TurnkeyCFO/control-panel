@@ -16,7 +16,7 @@ from app.db import (
     breakdown_by_skill, breakdown_by_model,
 )
 from app.middleware.localhost_only import LocalhostOnlyMiddleware
-from app.collectors import skills_state, env_audit, processes, task_scheduler, claude_code, coach, lead_gen, hubspot, instantly, crm_hs, control_center
+from app.collectors import skills_state, env_audit, processes, task_scheduler, claude_code, coach, lead_gen, hubspot, instantly, crm_hs, control_center, agents
 from app.controls import registry, skill_runner
 
 
@@ -252,6 +252,18 @@ def cc_sessions(days: int = 30, limit: int = 15):
 @app.post("/api/claude-code/scan")
 def cc_scan():
     return claude_code.scan()
+
+
+@app.get("/api/agents")
+def agents_summary():
+    return agents.summary()
+
+
+@app.post("/api/agents/refresh")
+def agents_refresh():
+    from app.collectors import agents as _agents
+    _agents._CACHE["ts"] = 0.0  # invalidate cache
+    return _agents.summary()
 
 
 @app.post("/api/skills/{skill_id}/nonce")
