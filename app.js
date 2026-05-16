@@ -31,6 +31,7 @@ document.querySelectorAll(".tab").forEach(btn => {
     document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
     btn.classList.add("active");
     document.querySelector(`.tab-panel[data-panel="${btn.dataset.tab}"]`).classList.add("active");
+    if (btn.dataset.tab === "agents") { try { loadAgentManager(); } catch {} }
     if (btn.dataset.tab === "control-center") { try { loadControlCenter(); } catch {} }
     if (btn.dataset.tab === "lead-gen") { try { loadLeadGen(); } catch {} }
     if (btn.dataset.tab === "scheduled-jobs") { try { loadScheduledJobs(); } catch {} }
@@ -1645,6 +1646,84 @@ function wireControlCenter() {
   };
 }
 
+// ───── Agent Manager ─────
+let _agentAutoRefresh = null;
+
+async function loadAgentManager(force = false) {
+  const container = document.getElementById("agents-container");
+  if (!container) return;
+  const lastEl = document.getElementById("agents-last-refresh");
+  try {
+    const endpoint = force ? "/api/agents/refresh" : "/api/agents";
+    const d = force
+      ? await api(endpoint, { method: "POST", body: "{}" })
+      : await api(endpoint);
+    const { groups, group_order, counts } = d;
+
+    // Status bar
+    const badgesEl = document.getElementById("agents-summary-badges");
+    if (badgesEl) {
+      const parts = [];
+      if (counts.running) parts.push(`<span class="astat running">${counts.running} running</span>`);
+      if (counts.ok)      parts.push(`<span class="astat ok">${counts.ok} healthy</span>`);
+      if (counts.warn)    parts.push(`<span class="astat warn">${counts.warn} warn</span>`);
+      if (counts.disabled)parts.push(`<span class="astat disabled">${counts.disabled} disabled</span>`);
+      badgesEl.innerHTML = parts.join("");
+    }
+    if (lastEl) lastEl.textContent = `Refreshed ${new Date().toLocaleTimeString()}`;
+
+    const order = group_order || Object.keys(groups);
+    const html = order.filter(g => groups[g] && groups[g].length).map(grpName => {
+      const cards = groups[grpName];
+      const cardsHtml = cards.map(card => {
+        const statusBadge = card.status === "running"
+          ? '<span class="badge running">● running</span>'
+          : card.status === "disabled"
+          ? '<span class="badge disabled">disabled</span>'
+          : card.status === "warn"
+          ? '<span class="badge warn">⚠ warn</span>'
+          : '<span class="badge idle">idle</span>';
+
+        const schedule = card.repeat_every
+          ? `every ${card.repeat_every}`
+          : card.schedule_label || "—";
+        const lastRun = card.last_run && card.last_run !== "N/A" ? card.last_run.slice(0, 16) : "—";
+        const nextRun = card.next_run && card.next_run !== "N/A" ? card.next_run.slice(0, 16) : "—";
+        const lastResult = card.last_result && card.last_result !== "—" ? esc(card.last_result) : "";
+
+        return `<div class="agent-card status-${esc(card.status)}">
+          <div class="agent-card-top">
+            <span class="agent-icon">${esc(card.icon)}</span>
+            <div style="flex:1;min-width:0">
+              <div class="agent-label">${esc(card.label)}</div>
+              <div class="agent-name">${esc(card.name.replace(/^\\/,""))}</div>
+            </div>
+            <div class="agent-badge-row">${statusBadge}</div>
+          </div>
+          ${card.goal ? `<div class="agent-goal">${esc(card.goal)}</div>` : ""}
+          ${card.live_note ? `<div class="agent-live">↳ ${esc(card.live_note)}</div>` : ""}
+          <div class="agent-meta">
+            <div class="agent-meta-item">⏱ <strong>${esc(schedule)}</strong></div>
+            <div class="agent-meta-item">Last: <strong>${esc(lastRun)}</strong></div>
+            <div class="agent-meta-item">Next: <strong>${esc(nextRun)}</strong></div>
+            ${lastResult ? `<div class="agent-meta-item" style="${card.status==='warn'?'color:var(--warn)':''}">Result: <strong>${lastResult}</strong></div>` : ""}
+          </div>
+        </div>`;
+      }).join("");
+      return `<div class="agent-group">
+        <div class="agent-group-label">${esc(grpName)} <span class="ag-count">(${cards.length})</span></div>
+        <div class="agent-grid">${cardsHtml}</div>
+      </div>`;
+    }).join("");
+    container.innerHTML = html || '<div class="muted center" style="padding:40px">No Turnkey agents found.</div>';
+  } catch (e) {
+    if (container) container.innerHTML = `<div class="muted center" style="padding:40px">Error loading agents: ${esc(e.message)}</div>`;
+    if (lastEl) lastEl.textContent = `Failed at ${new Date().toLocaleTimeString()}`;
+  }
+}
+
+document.getElementById("agents-refresh-btn").onclick = () => loadAgentManager(true);
+
 async function boot() {
   await loadBootstrap();
   await Promise.all([
@@ -1680,6 +1759,8 @@ async function boot() {
     if (state.tabsLoaded.has("crm")) loadCrm();
     if (state.tabsLoaded.has("hubspot")) loadHubspot();
     if (state.tabsLoaded.has("instantly")) loadInstantly();
-  }, 60000);
+    // refresh Agent Manager in background if tab is visible
+    if (document.querySelector('.tab[data-tab="agents"]')?.classList.contains("active")) loadAgentManager();
+  }, 30000);
 }
 boot().catch(e => { document.body.innerHTML = `<pre style="padding:40px;color:#B91C1C">Boot failed: ${e.message}</pre>`; });

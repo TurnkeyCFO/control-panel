@@ -20,6 +20,7 @@
 
   <nav class="tabs">
     <button class="tab active" data-tab="overview">Overview</button>
+    <button class="tab" data-tab="agents">⚡ Agents</button>
     <button class="tab" data-tab="control-center">Control Center</button>
     <button class="tab" data-tab="claude-code">Claude Code</button>
     <button class="tab" data-tab="lead-gen">Lead Gen</button>
@@ -33,6 +34,19 @@
   </nav>
 
   <main>
+    <!-- ── AGENTS TAB ─────────────────────────────────────────── -->
+    <section class="tab-panel" data-panel="agents">
+      <div class="card-head" style="margin-bottom:12px;display:flex;align-items:center;gap:12px">
+        <h2 style="margin:0">Agent Manager</h2>
+        <span id="agents-summary-badges" style="display:flex;gap:6px"></span>
+        <span class="muted" id="agents-last-refresh" style="margin-left:auto;font-size:12px"></span>
+        <button id="agents-refresh-btn" style="font-size:12px;padding:4px 10px">Refresh</button>
+      </div>
+      <div id="agents-container">
+        <div class="muted center" style="padding:40px">Loading agents…</div>
+      </div>
+    </section>
+
     <!-- ── OVERVIEW TAB ─────────────────────────────────────── -->
     <section class="tab-panel active" data-panel="overview">
       <div class="tiles" id="spend-tiles">
