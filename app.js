@@ -8,7 +8,24 @@ const state = { csrf: null, charts: {}, skills: [], activeFilter: "all", token: 
   state.token = sessionStorage.getItem("cp_token") || null;
 })();
 
-const PALETTE = ["#0A0A0A", "#6B7280", "#047857", "#B45309", "#4F46E5", "#DB2777", "#0891B2", "#9333EA", "#059669", "#7C3AED"];
+const PALETTE = ["#00E676", "#60A5FA", "#A78BFA", "#F59E0B", "#FB7185", "#38BDF8", "#34D399", "#F472B6", "#FCD34D", "#818CF8"];
+
+// ───── Chart.js global dark theme defaults ─────
+if (typeof Chart !== "undefined") {
+  Chart.defaults.color = "#4E6079";
+  Chart.defaults.borderColor = "#1E2D45";
+  Chart.defaults.backgroundColor = "rgba(0,230,118,0.1)";
+  Chart.defaults.plugins.legend.display = false;
+  Chart.defaults.plugins.tooltip.backgroundColor = "#0F1623";
+  Chart.defaults.plugins.tooltip.borderColor = "#1E2D45";
+  Chart.defaults.plugins.tooltip.borderWidth = 1;
+  Chart.defaults.plugins.tooltip.titleColor = "#E8EEF8";
+  Chart.defaults.plugins.tooltip.bodyColor = "#94A3B8";
+  Chart.defaults.plugins.tooltip.padding = 10;
+  Chart.defaults.plugins.tooltip.cornerRadius = 8;
+  Chart.defaults.scale.grid.color = "#1E2D45";
+  Chart.defaults.scale.ticks.color = "#4E6079";
+}
 
 async function api(path, opts = {}) {
   const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
@@ -107,7 +124,7 @@ async function loadSpendChart() {
     borderWidth: 1,
   }));
   if (!days.length) {
-    datasets.push({ label: "no data yet", data: [0], backgroundColor: "#E5E7EB" });
+    datasets.push({ label: "no data yet", data: [0], backgroundColor: "#1E2D45" });
     days.push(new Date().toISOString().slice(0, 10));
   }
   upsertChart("chart-spend", {
@@ -115,10 +132,10 @@ async function loadSpendChart() {
     data: { labels: days, datasets },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 11 } } } },
+      plugins: { legend: { display: datasets.length > 1, position: "bottom", labels: { boxWidth: 10, font: { size: 11 }, color: "#4E6079" } } },
       scales: {
-        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 10 } },
-        y: { stacked: true, beginAtZero: true, ticks: { font: { size: 10 }, callback: v => "$" + v } },
+        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 10, color: "#4E6079" } },
+        y: { stacked: true, beginAtZero: true, grid: { color: "#1E2D45" }, ticks: { font: { size: 10 }, color: "#4E6079", callback: v => "$" + v } },
       },
     },
   });
@@ -138,16 +155,16 @@ async function loadActivityChart() {
     borderColor: PALETTE[i % PALETTE.length],
     borderWidth: 1, fill: true, tension: 0.25,
   }));
-  if (!hours.length) { datasets.push({ label: "no activity", data: [0], backgroundColor: "#E5E7EB" }); hours.push(""); }
+  if (!hours.length) { datasets.push({ label: "no activity", data: [0], backgroundColor: "#1E2D45" }); hours.push(""); }
   upsertChart("chart-activity", {
     type: "line",
     data: { labels: hours.map(h => h.slice(11, 16)), datasets },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 11 } } } },
+      plugins: { legend: { display: datasets.length > 1, position: "bottom", labels: { boxWidth: 10, font: { size: 11 }, color: "#4E6079" } } },
       scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 12 } },
-        y: { beginAtZero: true, ticks: { font: { size: 10 }, precision: 0 } },
+        x: { grid: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 12, color: "#4E6079" } },
+        y: { beginAtZero: true, grid: { color: "#1E2D45" }, ticks: { font: { size: 10 }, color: "#4E6079", precision: 0 } },
       },
     },
   });
@@ -163,13 +180,13 @@ async function loadSkillBreakdown() {
       labels: labels.length ? labels : ["no data"],
       datasets: [{
         data: data.length ? data : [1],
-        backgroundColor: labels.length ? labels.map((_, i) => PALETTE[i % PALETTE.length]) : ["#E5E7EB"],
-        borderWidth: 2, borderColor: "#FFFFFF",
+        backgroundColor: labels.length ? labels.map((_, i) => PALETTE[i % PALETTE.length]) : ["#1E2D45"],
+        borderWidth: 2, borderColor: "#0F1623",
       }],
     },
     options: {
-      responsive: true, maintainAspectRatio: false, cutout: "58%",
-      plugins: { legend: { position: "right", labels: { boxWidth: 10, font: { size: 11 } } } },
+      responsive: true, maintainAspectRatio: false, cutout: "62%",
+      plugins: { legend: { display: true, position: "right", labels: { boxWidth: 10, font: { size: 11 }, color: "#94A3B8" } } },
     },
   });
 }
@@ -184,13 +201,13 @@ async function loadModelBreakdown() {
       labels: labels.length ? labels : ["no data"],
       datasets: [{
         data: data.length ? data : [1],
-        backgroundColor: labels.length ? labels.map((_, i) => PALETTE[i % PALETTE.length]) : ["#E5E7EB"],
-        borderWidth: 2, borderColor: "#FFFFFF",
+        backgroundColor: labels.length ? labels.map((_, i) => PALETTE[i % PALETTE.length]) : ["#1E2D45"],
+        borderWidth: 2, borderColor: "#0F1623",
       }],
     },
     options: {
-      responsive: true, maintainAspectRatio: false, cutout: "58%",
-      plugins: { legend: { position: "right", labels: { boxWidth: 10, font: { size: 11 } } } },
+      responsive: true, maintainAspectRatio: false, cutout: "62%",
+      plugins: { legend: { display: true, position: "right", labels: { boxWidth: 10, font: { size: 11 }, color: "#94A3B8" } } },
     },
   });
 }
@@ -1675,13 +1692,19 @@ async function loadAgentManager(force = false) {
     const order = group_order || Object.keys(groups);
     const html = order.filter(g => groups[g] && groups[g].length).map(grpName => {
       const cards = groups[grpName];
+      const runningCount = cards.filter(c => c.status === "running").length;
+      const okCount = cards.filter(c => c.status === "ok").length;
+      const warnCount = cards.filter(c => c.status === "warn").length;
+
       const cardsHtml = cards.map(card => {
         const statusBadge = card.status === "running"
-          ? '<span class="badge running">● running</span>'
+          ? '<span class="badge running">running</span>'
           : card.status === "disabled"
           ? '<span class="badge disabled">disabled</span>'
           : card.status === "warn"
-          ? '<span class="badge warn">⚠ warn</span>'
+          ? '<span class="badge warn">warn</span>'
+          : card.status === "ok"
+          ? '<span class="badge ok">ok</span>'
           : '<span class="badge idle">idle</span>';
 
         const schedule = card.repeat_every
@@ -1689,29 +1712,40 @@ async function loadAgentManager(force = false) {
           : card.schedule_label || "—";
         const lastRun = card.last_run && card.last_run !== "N/A" ? card.last_run.slice(0, 16) : "—";
         const nextRun = card.next_run && card.next_run !== "N/A" ? card.next_run.slice(0, 16) : "—";
-        const lastResult = card.last_result && card.last_result !== "—" ? esc(card.last_result) : "";
+        const lastResult = card.last_result && card.last_result !== "—" ? esc(card.last_result).slice(0, 60) : "";
 
         return `<div class="agent-card status-${esc(card.status)}">
           <div class="agent-card-top">
             <span class="agent-icon">${esc(card.icon)}</span>
-            <div style="flex:1;min-width:0">
+            <div class="agent-info">
               <div class="agent-label">${esc(card.label)}</div>
               <div class="agent-name">${esc(card.name.replace(/^\\/,""))}</div>
             </div>
             <div class="agent-badge-row">${statusBadge}</div>
           </div>
           ${card.goal ? `<div class="agent-goal">${esc(card.goal)}</div>` : ""}
-          ${card.live_note ? `<div class="agent-live">↳ ${esc(card.live_note)}</div>` : ""}
+          ${card.live_note ? `<div class="agent-live">${esc(card.live_note)}</div>` : ""}
           <div class="agent-meta">
             <div class="agent-meta-item">⏱ <strong>${esc(schedule)}</strong></div>
             <div class="agent-meta-item">Last: <strong>${esc(lastRun)}</strong></div>
             <div class="agent-meta-item">Next: <strong>${esc(nextRun)}</strong></div>
-            ${lastResult ? `<div class="agent-meta-item" style="${card.status==='warn'?'color:var(--warn)':''}">Result: <strong>${lastResult}</strong></div>` : ""}
+            ${lastResult ? `<div class="agent-meta-item" style="${card.status==="warn"?"color:var(--warn)":""}">⇒ <strong>${lastResult}</strong></div>` : ""}
           </div>
         </div>`;
       }).join("");
-      return `<div class="agent-group">
-        <div class="agent-group-label">${esc(grpName)} <span class="ag-count">(${cards.length})</span></div>
+
+      const groupMeta = [
+        runningCount ? `<span class="astat running" style="font-size:10px;padding:2px 8px">${runningCount} running</span>` : "",
+        warnCount    ? `<span class="astat warn"    style="font-size:10px;padding:2px 8px">${warnCount} warn</span>` : "",
+        okCount      ? `<span class="astat ok"      style="font-size:10px;padding:2px 8px">${okCount} ok</span>` : "",
+      ].filter(Boolean).join("");
+
+      return `<div class="agent-group" data-group="${esc(grpName)}">
+        <div class="agent-group-label">
+          <span>${esc(grpName)}</span>
+          ${groupMeta}
+          <span class="ag-count">${cards.length} agents</span>
+        </div>
         <div class="agent-grid">${cardsHtml}</div>
       </div>`;
     }).join("");
