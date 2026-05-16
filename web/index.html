@@ -4,7 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Turnkey Master Dashboard</title>
-  <link rel="stylesheet" href="./style.css?v=20260426" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="./style.css?v=20260515b" />
 </head>
 <body>
   <header class="topbar">
@@ -36,14 +39,14 @@
   <main>
     <!-- ── AGENTS TAB ─────────────────────────────────────────── -->
     <section class="tab-panel" data-panel="agents">
-      <div class="card-head" style="margin-bottom:12px;display:flex;align-items:center;gap:12px">
-        <h2 style="margin:0">Agent Manager</h2>
-        <span id="agents-summary-badges" style="display:flex;gap:6px"></span>
-        <span class="muted" id="agents-last-refresh" style="margin-left:auto;font-size:12px"></span>
-        <button id="agents-refresh-btn" style="font-size:12px;padding:4px 10px">Refresh</button>
+      <div class="agents-tab-header">
+        <div class="agents-tab-title">⚡ <span>Agent</span> Manager</div>
+        <div id="agents-summary-badges" class="agents-status-bar"></div>
+        <span id="agents-last-refresh"></span>
+        <button id="agents-refresh-btn" class="secondary" style="margin-left:auto">↺ Refresh</button>
       </div>
       <div id="agents-container">
-        <div class="muted center" style="padding:40px">Loading agents…</div>
+        <div class="muted center" style="padding:60px">Loading agents…</div>
       </div>
     </section>
 
